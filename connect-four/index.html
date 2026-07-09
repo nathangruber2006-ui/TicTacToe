@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic-Tac-Toe</title>
-<link rel="stylesheet" href="shared/themes.css?v=4">
-<link rel="stylesheet" href="shared/common.css?v=4">
-<link rel="stylesheet" href="shared/sidebar.css?v=4">
+<title>Connect Four</title>
+<link rel="stylesheet" href="../shared/themes.css?v=4">
+<link rel="stylesheet" href="../shared/common.css?v=4">
+<link rel="stylesheet" href="../shared/sidebar.css?v=4">
 <link rel="stylesheet" href="style.css">
-<script>window.SITE_ROOT = "./";</script>
+<script>window.SITE_ROOT = "../";</script>
 </head>
-<body data-game="tictactoe">
+<body data-game="connect4">
   <aside id="sidebar" class="sidebar"></aside>
   <div class="content">
   <main class="game">
-    <h1>Tic-Tac-Toe</h1>
+    <h1>Connect Four</h1>
 
     <div id="tabs" class="tabs">
       <button class="tab-btn" data-tab="play">Play</button>
@@ -36,8 +36,8 @@
       </div>
 
       <div id="symbolChoice" class="difficulty">
-        <button class="symbol-btn" data-symbol="X">Play as X</button>
-        <button class="symbol-btn" data-symbol="O">Play as O</button>
+        <button class="symbol-btn" data-symbol="R">Play as Red</button>
+        <button class="symbol-btn" data-symbol="Y">Play as Yellow</button>
         <button class="symbol-btn" data-symbol="random">Random</button>
       </div>
 
@@ -49,19 +49,52 @@
       </div>
 
       <p id="rankDisplay" class="rank">Silver · 1000</p>
-      <p id="youAre" class="you-are">You are X</p>
+      <p id="youAre" class="you-are">You are Red</p>
       <p id="status" class="status">Your turn</p>
 
-      <div id="board" class="board">
-        <button class="cell" data-index="0"></button>
-        <button class="cell" data-index="1"></button>
-        <button class="cell" data-index="2"></button>
-        <button class="cell" data-index="3"></button>
-        <button class="cell" data-index="4"></button>
-        <button class="cell" data-index="5"></button>
-        <button class="cell" data-index="6"></button>
-        <button class="cell" data-index="7"></button>
-        <button class="cell" data-index="8"></button>
+      <div id="board" class="c4-board">
+        <button class="c4-cell" data-index="0"></button>
+        <button class="c4-cell" data-index="1"></button>
+        <button class="c4-cell" data-index="2"></button>
+        <button class="c4-cell" data-index="3"></button>
+        <button class="c4-cell" data-index="4"></button>
+        <button class="c4-cell" data-index="5"></button>
+        <button class="c4-cell" data-index="6"></button>
+        <button class="c4-cell" data-index="7"></button>
+        <button class="c4-cell" data-index="8"></button>
+        <button class="c4-cell" data-index="9"></button>
+        <button class="c4-cell" data-index="10"></button>
+        <button class="c4-cell" data-index="11"></button>
+        <button class="c4-cell" data-index="12"></button>
+        <button class="c4-cell" data-index="13"></button>
+        <button class="c4-cell" data-index="14"></button>
+        <button class="c4-cell" data-index="15"></button>
+        <button class="c4-cell" data-index="16"></button>
+        <button class="c4-cell" data-index="17"></button>
+        <button class="c4-cell" data-index="18"></button>
+        <button class="c4-cell" data-index="19"></button>
+        <button class="c4-cell" data-index="20"></button>
+        <button class="c4-cell" data-index="21"></button>
+        <button class="c4-cell" data-index="22"></button>
+        <button class="c4-cell" data-index="23"></button>
+        <button class="c4-cell" data-index="24"></button>
+        <button class="c4-cell" data-index="25"></button>
+        <button class="c4-cell" data-index="26"></button>
+        <button class="c4-cell" data-index="27"></button>
+        <button class="c4-cell" data-index="28"></button>
+        <button class="c4-cell" data-index="29"></button>
+        <button class="c4-cell" data-index="30"></button>
+        <button class="c4-cell" data-index="31"></button>
+        <button class="c4-cell" data-index="32"></button>
+        <button class="c4-cell" data-index="33"></button>
+        <button class="c4-cell" data-index="34"></button>
+        <button class="c4-cell" data-index="35"></button>
+        <button class="c4-cell" data-index="36"></button>
+        <button class="c4-cell" data-index="37"></button>
+        <button class="c4-cell" data-index="38"></button>
+        <button class="c4-cell" data-index="39"></button>
+        <button class="c4-cell" data-index="40"></button>
+        <button class="c4-cell" data-index="41"></button>
       </div>
 
       <div class="controls">
@@ -109,7 +142,7 @@
       <div id="historyDetail" class="history-detail hidden">
         <button id="backToHistory" class="reset-btn">&larr; Back to list</button>
         <div id="historyDetailContent" class="history-detail-content"></div>
-        <div id="historyBoard" class="board mini-board"></div>
+        <div id="historyBoard" class="c4-board mini-board"></div>
       </div>
     </div>
 
@@ -146,8 +179,8 @@
   </main>
   </div>
 
-  <script src="shared/theme.js?v=4"></script>
-  <script src="shared/sidebar.js?v=4"></script>
+  <script src="../shared/theme.js?v=4"></script>
+  <script src="../shared/sidebar.js?v=4"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,139 @@
+:root {
+  --bg-start: #581c87;
+  --bg-end: #1e1b4b;
+  --text: #fdf4ff;
+  --text-muted: #d8b4fe;
+  --text-dim: #a78bfa;
+  --surface: #7e22ce;
+  --surface-hover: #9333ea;
+  --border: #c084fc;
+  --accent: #facc15;
+  --accent-hover: #eab308;
+  --accent-text: #422006;
+  --x-color: #22d3ee;
+  --o-color: #fb7185;
+  --win-bg: #16a34a;
+  --win-border: #4ade80;
+  --btn-shadow: rgba(30, 10, 60, 0.55);
+}
+
+:root[data-theme="mono"] {
+  --bg-start: #171717;
+  --bg-end: #000000;
+  --text: #ffffff;
+  --text-muted: #d4d4d4;
+  --text-dim: #a3a3a3;
+  --surface: #2e2e2e;
+  --surface-hover: #404040;
+  --border: #737373;
+  --accent: #ffffff;
+  --accent-hover: #e5e5e5;
+  --accent-text: #000000;
+  --x-color: #ffffff;
+  --o-color: #a3a3a3;
+  --win-bg: #404040;
+  --win-border: #ffffff;
+  --btn-shadow: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="blue-green"] {
+  --bg-start: #0c4a6e;
+  --bg-end: #064e3b;
+  --text: #ecfeff;
+  --text-muted: #a7f3d0;
+  --text-dim: #5eead4;
+  --surface: #0369a1;
+  --surface-hover: #0284c7;
+  --border: #38bdf8;
+  --accent: #34d399;
+  --accent-hover: #10b981;
+  --accent-text: #022c22;
+  --x-color: #38bdf8;
+  --o-color: #4ade80;
+  --win-bg: #059669;
+  --win-border: #6ee7b7;
+  --btn-shadow: rgba(2, 30, 40, 0.55);
+}
+
+:root[data-theme="red-white"] {
+  --bg-start: #b91c1c;
+  --bg-end: #7f1d1d;
+  --text: #ffffff;
+  --text-muted: #fecaca;
+  --text-dim: #fca5a5;
+  --surface: #dc2626;
+  --surface-hover: #ef4444;
+  --border: #fca5a5;
+  --accent: #ffffff;
+  --accent-hover: #fef2f2;
+  --accent-text: #b91c1c;
+  --x-color: #ffffff;
+  --o-color: #fde047;
+  --win-bg: #16a34a;
+  --win-border: #4ade80;
+  --btn-shadow: rgba(60, 5, 5, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+.game {
+  text-align: center;
+  padding: 2rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-shadow: 0 3px 0 var(--btn-shadow);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.status {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-height: 1.5em;
+}
+
+.empty-state {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.reset-btn {
+  background: var(--accent);
+  border: none;
+  color: var(--accent-text);
+  padding: 0.65rem 1.5rem;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--btn-shadow);
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.reset-btn:hover {
+  background: var(--accent-hover);
+}
+
+.reset-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--btn-shadow);
+}

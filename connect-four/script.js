@@ -1,18 +1,16 @@
-const WIN_LINES = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6],
-];
+const ROWS = 6;
+const COLS = 7;
+const COLUMN_ORDER = [3, 2, 4, 1, 5, 0, 6];
 
-const RECORDS_KEY = "tictactoe-records-v1";
-const DIFFICULTY_KEY = "tictactoe-difficulty-v1";
-const SYMBOL_KEY = "tictactoe-symbol-v1";
-const MODE_KEY = "tictactoe-mode-v1";
-const MATCH_TYPE_KEY = "tictactoe-matchtype-v1";
-const TWO_PLAYER_KEY = "tictactoe-2p-record-v1";
-const RANK_KEY = "tictactoe-rank-v1";
-const STREAK_KEY = "tictactoe-streak-v1";
-const HISTORY_KEY = "tictactoe-history-v1";
+const RECORDS_KEY = "connect4-records-v1";
+const DIFFICULTY_KEY = "connect4-difficulty-v1";
+const SYMBOL_KEY = "connect4-symbol-v1";
+const MODE_KEY = "connect4-mode-v1";
+const MATCH_TYPE_KEY = "connect4-matchtype-v1";
+const TWO_PLAYER_KEY = "connect4-2p-record-v1";
+const RANK_KEY = "connect4-rank-v1";
+const STREAK_KEY = "connect4-streak-v1";
+const HISTORY_KEY = "connect4-history-v1";
 const HISTORY_LIMIT = 50;
 
 const RANK_POINTS = {
@@ -20,6 +18,11 @@ const RANK_POINTS = {
   medium: { win: 10, draw: 0, loss: -10 },
   hard: { win: 20, draw: 2, loss: -8 },
   impossible: { win: 40, draw: 5, loss: -3 },
+};
+
+const SEARCH_DEPTH = {
+  hard: 3,
+  impossible: 5,
 };
 
 const RANK_TIERS = [
@@ -32,7 +35,7 @@ const RANK_TIERS = [
 ];
 
 const boardEl = document.getElementById("board");
-const cells = Array.from(document.querySelectorAll(".cell"));
+const cells = Array.from(document.querySelectorAll(".c4-cell"));
 const statusEl = document.getElementById("status");
 const youAreEl = document.getElementById("youAre");
 const rankEl = document.getElementById("rankDisplay");
@@ -75,7 +78,7 @@ const tierLadderEl = document.getElementById("tierLadder");
 const themesViewEl = document.getElementById("themesView");
 const themeButtons = Array.from(document.querySelectorAll(".theme-btn"));
 
-let board = Array(9).fill(null);
+let board = Array(ROWS * COLS).fill(null);
 let gameOver = false;
 let humanTurn = true;
 let mode = loadMode();
@@ -83,9 +86,9 @@ let matchType = loadMatchType();
 let difficulty = loadDifficulty();
 let records = loadRecords();
 let symbolChoice = loadSymbolChoice();
-let humanSymbol = "X";
-let aiSymbol = "O";
-let currentPlayer = "X";
+let humanSymbol = "R";
+let aiSymbol = "Y";
+let currentPlayer = "R";
 let twoPlayerRecord = loadTwoPlayerRecord();
 let rank = loadRank();
 let streak = loadStreak();
@@ -119,7 +122,7 @@ function playTone({ freq, start = 0, duration = 0.12, type = "sine", volume = 0.
 }
 
 function playPlaceSound(symbol) {
-  playTone({ freq: symbol === "X" ? 440 : 330, duration: 0.12 });
+  playTone({ freq: symbol === "R" ? 440 : 330, duration: 0.12 });
 }
 
 function playWinSound() {
@@ -155,7 +158,7 @@ function saveRecords() {
 }
 
 function loadTwoPlayerRecord() {
-  const defaults = { xWins: 0, oWins: 0, draws: 0 };
+  const defaults = { rWins: 0, yWins: 0, draws: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(TWO_PLAYER_KEY));
     return { ...defaults, ...saved };
@@ -177,7 +180,7 @@ function saveDifficulty() {
 }
 
 function loadSymbolChoice() {
-  return localStorage.getItem(SYMBOL_KEY) || "X";
+  return localStorage.getItem(SYMBOL_KEY) || "R";
 }
 
 function saveSymbolChoice() {
@@ -282,78 +285,152 @@ function updateRankDisplay() {
   rankEl.classList.add(`rank-${tier.toLowerCase()}`);
 }
 
+// --- Board helpers ---
+
+function getValidColumns(bd) {
+  const cols = [];
+  for (let c = 0; c < COLS; c++) {
+    if (bd[c] === null) cols.push(c);
+  }
+  return cols;
+}
+
+function getNextOpenRow(bd, col) {
+  for (let row = ROWS - 1; row >= 0; row--) {
+    if (bd[row * COLS + col] === null) return row;
+  }
+  return -1;
+}
+
+function checkLine(bd, idxs) {
+  const v = bd[idxs[0]];
+  return v !== null && idxs.every((i) => bd[i] === v);
+}
+
 function getWinner(bd) {
-  for (const line of WIN_LINES) {
-    const [a, b, c] = line;
-    if (bd[a] && bd[a] === bd[b] && bd[a] === bd[c]) {
-      return { player: bd[a], line };
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      const idxs = [0, 1, 2, 3].map((i) => row * COLS + col + i);
+      if (checkLine(bd, idxs)) return { player: bd[idxs[0]], line: idxs };
+    }
+  }
+  for (let col = 0; col < COLS; col++) {
+    for (let row = 0; row <= ROWS - 4; row++) {
+      const idxs = [0, 1, 2, 3].map((i) => (row + i) * COLS + col);
+      if (checkLine(bd, idxs)) return { player: bd[idxs[0]], line: idxs };
+    }
+  }
+  for (let row = 0; row <= ROWS - 4; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      const idxs = [0, 1, 2, 3].map((i) => (row + i) * COLS + col + i);
+      if (checkLine(bd, idxs)) return { player: bd[idxs[0]], line: idxs };
+    }
+  }
+  for (let row = 3; row < ROWS; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      const idxs = [0, 1, 2, 3].map((i) => (row - i) * COLS + col + i);
+      if (checkLine(bd, idxs)) return { player: bd[idxs[0]], line: idxs };
     }
   }
   return null;
-}
-
-function emptyIndices(bd) {
-  return bd.reduce((acc, v, i) => (v ? acc : [...acc, i]), []);
 }
 
 // --- AI move selection ---
 
 function randomMove(bd) {
-  const options = emptyIndices(bd);
-  return options[Math.floor(Math.random() * options.length)];
+  const cols = getValidColumns(bd);
+  return cols[Math.floor(Math.random() * cols.length)];
 }
 
-function findWinningMove(bd, player) {
-  for (const i of emptyIndices(bd)) {
-    bd[i] = player;
+function findWinningColumn(bd, player) {
+  for (const col of getValidColumns(bd)) {
+    const row = getNextOpenRow(bd, col);
+    bd[row * COLS + col] = player;
     const won = getWinner(bd) !== null;
-    bd[i] = null;
-    if (won) return i;
+    bd[row * COLS + col] = null;
+    if (won) return col;
   }
   return null;
 }
 
 function heuristicMove(bd) {
-  return findWinningMove(bd, aiSymbol) ?? findWinningMove(bd, humanSymbol) ?? randomMove(bd);
+  return findWinningColumn(bd, aiSymbol) ?? findWinningColumn(bd, humanSymbol) ?? randomMove(bd);
 }
 
-function minimax(bd, depth, isMaximizing) {
+function scoreWindow(cellsInWindow) {
+  const aiCount = cellsInWindow.filter((c) => c === aiSymbol).length;
+  const humanCount = cellsInWindow.filter((c) => c === humanSymbol).length;
+  const emptyCount = cellsInWindow.filter((c) => c === null).length;
+
+  if (aiCount === 4) return 100;
+  if (aiCount === 3 && emptyCount === 1) return 5;
+  if (aiCount === 2 && emptyCount === 2) return 2;
+  if (humanCount === 3 && emptyCount === 1) return -4;
+  if (humanCount === 2 && emptyCount === 2) return -1;
+  return 0;
+}
+
+function evaluateBoard(bd) {
+  let score = 0;
+
+  for (let row = 0; row < ROWS; row++) {
+    score += (bd[row * COLS + 3] === aiSymbol ? 1 : 0) * 3;
+  }
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      score += scoreWindow([0, 1, 2, 3].map((i) => bd[row * COLS + col + i]));
+    }
+  }
+  for (let col = 0; col < COLS; col++) {
+    for (let row = 0; row <= ROWS - 4; row++) {
+      score += scoreWindow([0, 1, 2, 3].map((i) => bd[(row + i) * COLS + col]));
+    }
+  }
+  for (let row = 0; row <= ROWS - 4; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      score += scoreWindow([0, 1, 2, 3].map((i) => bd[(row + i) * COLS + col + i]));
+    }
+  }
+  for (let row = 3; row < ROWS; row++) {
+    for (let col = 0; col <= COLS - 4; col++) {
+      score += scoreWindow([0, 1, 2, 3].map((i) => bd[(row - i) * COLS + col + i]));
+    }
+  }
+
+  return score;
+}
+
+function minimax(bd, depth, alpha, beta, maximizing) {
   const result = getWinner(bd);
-  if (result) return result.player === aiSymbol ? 10 - depth : depth - 10;
-  if (emptyIndices(bd).length === 0) return 0;
+  if (result) {
+    if (result.player === aiSymbol) return { score: 1000000 + depth };
+    return { score: -1000000 - depth };
+  }
+  const validCols = COLUMN_ORDER.filter((c) => bd[c] === null);
+  if (validCols.length === 0) return { score: 0 };
+  if (depth === 0) return { score: evaluateBoard(bd) };
 
-  if (isMaximizing) {
-    let best = -Infinity;
-    for (const i of emptyIndices(bd)) {
-      bd[i] = aiSymbol;
-      best = Math.max(best, minimax(bd, depth + 1, false));
-      bd[i] = null;
+  const player = maximizing ? aiSymbol : humanSymbol;
+  let best = { score: maximizing ? -Infinity : Infinity, column: validCols[0] };
+
+  for (const col of validCols) {
+    const row = getNextOpenRow(bd, col);
+    bd[row * COLS + col] = player;
+    const outcome = minimax(bd, depth - 1, alpha, beta, !maximizing);
+    bd[row * COLS + col] = null;
+
+    if (maximizing) {
+      if (outcome.score > best.score) best = { score: outcome.score, column: col };
+      alpha = Math.max(alpha, best.score);
+    } else {
+      if (outcome.score < best.score) best = { score: outcome.score, column: col };
+      beta = Math.min(beta, best.score);
     }
-    return best;
+    if (alpha >= beta) break;
   }
 
-  let best = Infinity;
-  for (const i of emptyIndices(bd)) {
-    bd[i] = humanSymbol;
-    best = Math.min(best, minimax(bd, depth + 1, true));
-    bd[i] = null;
-  }
   return best;
-}
-
-function bestMove(bd) {
-  let bestScore = -Infinity;
-  let move = null;
-  for (const i of emptyIndices(bd)) {
-    bd[i] = aiSymbol;
-    const score = minimax(bd, 0, false);
-    bd[i] = null;
-    if (score > bestScore) {
-      bestScore = score;
-      move = i;
-    }
-  }
-  return move;
 }
 
 function getAiMove(bd) {
@@ -363,9 +440,9 @@ function getAiMove(bd) {
     case "medium":
       return Math.random() < 0.5 ? heuristicMove(bd) : randomMove(bd);
     case "hard":
-      return heuristicMove(bd);
+      return minimax(bd, SEARCH_DEPTH.hard, -Infinity, Infinity, true).column;
     case "impossible":
-      return bestMove(bd);
+      return minimax(bd, SEARCH_DEPTH.impossible, -Infinity, Infinity, true).column;
     default:
       return randomMove(bd);
   }
@@ -373,21 +450,20 @@ function getAiMove(bd) {
 
 // --- Game flow ---
 
-function handleCellClick(e) {
+function handleColumnClick(col) {
   if (gameOver) return;
-  const index = Number(e.currentTarget.dataset.index);
-  if (board[index]) return;
+  if (board[col] !== null) return;
 
   if (mode === "twoPlayer") {
-    const ended = playMove(index, currentPlayer);
+    const ended = playMove(col, currentPlayer);
     if (ended) return;
-    currentPlayer = currentPlayer === "X" ? "O" : "X";
-    statusEl.textContent = `${currentPlayer}'s turn`;
+    currentPlayer = currentPlayer === "R" ? "Y" : "R";
+    statusEl.textContent = `${currentPlayer === "R" ? "Red" : "Yellow"}'s turn`;
     return;
   }
 
   if (!humanTurn) return;
-  const ended = playMove(index, humanSymbol);
+  const ended = playMove(col, humanSymbol);
   if (ended) return;
 
   humanTurn = false;
@@ -397,8 +473,8 @@ function handleCellClick(e) {
 }
 
 function aiMove() {
-  const index = getAiMove(board);
-  const ended = playMove(index, aiSymbol);
+  const col = getAiMove(board);
+  const ended = playMove(col, aiSymbol);
   if (!ended) {
     humanTurn = true;
     setBoardDisabled(false);
@@ -406,9 +482,12 @@ function aiMove() {
   }
 }
 
-function playMove(index, player) {
-  board[index] = player;
-  renderCell(index, player);
+function playMove(col, player) {
+  const row = getNextOpenRow(board, col);
+  if (row === -1) return false;
+
+  board[row * COLS + col] = player;
+  renderCell(row * COLS + col, player);
   playPlaceSound(player);
 
   const result = getWinner(board);
@@ -420,7 +499,7 @@ function playMove(index, player) {
     return true;
   }
 
-  if (emptyIndices(board).length === 0) {
+  if (getValidColumns(board).length === 0) {
     gameOver = true;
     handleDraw();
     return true;
@@ -431,10 +510,10 @@ function playMove(index, player) {
 
 function handleWin(winner, winLine) {
   if (mode === "twoPlayer") {
-    if (winner === "X") twoPlayerRecord.xWins++;
-    else twoPlayerRecord.oWins++;
+    if (winner === "R") twoPlayerRecord.rWins++;
+    else twoPlayerRecord.yWins++;
     saveTwoPlayerRecord();
-    statusEl.textContent = `${winner} wins!`;
+    statusEl.textContent = `${winner === "R" ? "Red" : "Yellow"} wins!`;
     playWinSound();
     recordHistory({
       timestamp: Date.now(),
@@ -531,8 +610,7 @@ function handleDraw() {
 
 function renderCell(index, player) {
   const cell = cells[index];
-  cell.textContent = player;
-  cell.classList.add(player.toLowerCase());
+  cell.classList.add(player === "R" ? "red" : "yellow");
   cell.disabled = true;
 }
 
@@ -542,20 +620,17 @@ function highlightWin(line) {
 
 function setBoardDisabled(disabled) {
   cells.forEach((cell) => {
-    if (disabled || board[Number(cell.dataset.index)]) {
-      cell.disabled = true;
-    } else {
-      cell.disabled = false;
-    }
+    const col = Number(cell.dataset.index) % COLS;
+    cell.disabled = disabled || board[col] !== null;
   });
 }
 
 function updateScoreDisplay() {
   if (mode === "twoPlayer") {
-    scoreLabel1El.textContent = "X Wins";
-    score1El.textContent = twoPlayerRecord.xWins;
-    scoreLabel2El.textContent = "O Wins";
-    score2El.textContent = twoPlayerRecord.oWins;
+    scoreLabel1El.textContent = "Red Wins";
+    score1El.textContent = twoPlayerRecord.rWins;
+    scoreLabel2El.textContent = "Yellow Wins";
+    score2El.textContent = twoPlayerRecord.yWins;
     scoreDrawsEl.textContent = twoPlayerRecord.draws;
   } else {
     const record = records[difficulty];
@@ -570,6 +645,12 @@ function updateScoreDisplay() {
 function updateModeButtons() {
   modeButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+}
+
+function updateMatchTypeButtons() {
+  matchTypeButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.matchtype === matchType);
   });
 }
 
@@ -596,35 +677,28 @@ function updatePanelVisibility() {
   scoreRowEl.classList.toggle("hidden", isAi && matchType !== "ranked");
 }
 
-function updateMatchTypeButtons() {
-  matchTypeButtons.forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.matchtype === matchType);
-  });
-}
-
 function resolveSymbols() {
-  humanSymbol = symbolChoice === "random" ? (Math.random() < 0.5 ? "X" : "O") : symbolChoice;
-  aiSymbol = humanSymbol === "X" ? "O" : "X";
-  youAreEl.textContent = `You are ${humanSymbol} · AI is ${aiSymbol}`;
+  humanSymbol = symbolChoice === "random" ? (Math.random() < 0.5 ? "R" : "Y") : symbolChoice;
+  aiSymbol = humanSymbol === "R" ? "Y" : "R";
+  youAreEl.textContent = `You are ${humanSymbol === "R" ? "Red" : "Yellow"} · AI is ${aiSymbol === "R" ? "Red" : "Yellow"}`;
 }
 
 function resetBoard() {
-  board = Array(9).fill(null);
+  board = Array(ROWS * COLS).fill(null);
   gameOver = false;
   cells.forEach((cell) => {
-    cell.textContent = "";
     cell.disabled = false;
-    cell.classList.remove("x", "o", "win");
+    cell.classList.remove("red", "yellow", "win");
   });
 
   if (mode === "twoPlayer") {
-    currentPlayer = "X";
-    statusEl.textContent = "X's turn";
+    currentPlayer = "R";
+    statusEl.textContent = "Red's turn";
     return;
   }
 
   resolveSymbols();
-  humanTurn = humanSymbol === "X";
+  humanTurn = humanSymbol === "R";
   if (humanTurn) {
     statusEl.textContent = "Your turn";
   } else {
@@ -632,6 +706,39 @@ function resetBoard() {
     setBoardDisabled(true);
     setTimeout(aiMove, 400);
   }
+}
+
+function setMode(newMode) {
+  mode = newMode;
+  saveMode();
+  updateModeButtons();
+  updatePanelVisibility();
+  updateScoreDisplay();
+  resetBoard();
+}
+
+function setMatchType(newMatchType) {
+  matchType = newMatchType;
+  saveMatchType();
+  updateMatchTypeButtons();
+  updatePanelVisibility();
+  updateScoreDisplay();
+  resetBoard();
+}
+
+function setDifficulty(newDifficulty) {
+  difficulty = newDifficulty;
+  saveDifficulty();
+  updateDifficultyButtons();
+  updateScoreDisplay();
+  resetBoard();
+}
+
+function setSymbolChoice(newChoice) {
+  symbolChoice = newChoice;
+  saveSymbolChoice();
+  updateSymbolButtons();
+  resetBoard();
 }
 
 // --- Tabs ---
@@ -730,12 +837,11 @@ function updateRankedView() {
   rankedTierEl.textContent = tier;
   rankedTierEl.className = `ranked-tier rank-${tier.toLowerCase()}`;
 
-  const series = computeRankSeries();
   const trackedCount = history.filter((entry) => entry.mode === "ai" && entry.rankDelta != null).length;
   if (trackedCount === 0) {
     rankChartEl.innerHTML = '<p class="empty-state">Play some ranked vs AI games to start tracking your rank over time.</p>';
   } else {
-    rankChartEl.innerHTML = buildRankChartSvg(series);
+    rankChartEl.innerHTML = buildRankChartSvg(computeRankSeries());
   }
 
   renderTierLadder();
@@ -768,7 +874,7 @@ function formatDate(ts) {
 
 function describeEntry(entry) {
   if (entry.mode === "twoPlayer") {
-    const outcome = entry.result === "draw" ? "Draw" : `${entry.result} won`;
+    const outcome = entry.result === "draw" ? "Draw" : `${entry.result === "R" ? "Red" : "Yellow"} won`;
     return `2 Player · ${outcome}`;
   }
   const diffLabel = capitalize(entry.difficulty);
@@ -803,11 +909,11 @@ function renderHistoryBoard(entry) {
   historyBoardEl.innerHTML = "";
   entry.board.forEach((val, i) => {
     const cellDiv = document.createElement("div");
-    let className = "cell";
-    if (val) className += ` ${val.toLowerCase()}`;
+    let className = "c4-cell";
+    if (val === "R") className += " red";
+    if (val === "Y") className += " yellow";
     if (entry.winLine && entry.winLine.includes(i)) className += " win";
     cellDiv.className = className;
-    cellDiv.textContent = val || "";
     historyBoardEl.appendChild(cellDiv);
   });
 }
@@ -823,40 +929,9 @@ function showHistoryDetail(idx) {
   renderHistoryBoard(entry);
 }
 
-function setMode(newMode) {
-  mode = newMode;
-  saveMode();
-  updateModeButtons();
-  updatePanelVisibility();
-  updateScoreDisplay();
-  resetBoard();
-}
-
-function setMatchType(newMatchType) {
-  matchType = newMatchType;
-  saveMatchType();
-  updateMatchTypeButtons();
-  updatePanelVisibility();
-  updateScoreDisplay();
-  resetBoard();
-}
-
-function setDifficulty(newDifficulty) {
-  difficulty = newDifficulty;
-  saveDifficulty();
-  updateDifficultyButtons();
-  updateScoreDisplay();
-  resetBoard();
-}
-
-function setSymbolChoice(newChoice) {
-  symbolChoice = newChoice;
-  saveSymbolChoice();
-  updateSymbolButtons();
-  resetBoard();
-}
-
-cells.forEach((cell) => cell.addEventListener("click", handleCellClick));
+cells.forEach((cell) =>
+  cell.addEventListener("click", () => handleColumnClick(Number(cell.dataset.index) % COLS))
+);
 resetBtn.addEventListener("click", resetBoard);
 modeButtons.forEach((btn) =>
   btn.addEventListener("click", () => setMode(btn.dataset.mode))

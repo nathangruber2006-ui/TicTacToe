@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic-Tac-Toe</title>
-<link rel="stylesheet" href="shared/themes.css?v=4">
-<link rel="stylesheet" href="shared/common.css?v=4">
-<link rel="stylesheet" href="shared/sidebar.css?v=4">
+<title>Rock Paper Scissors</title>
+<link rel="stylesheet" href="../shared/themes.css?v=4">
+<link rel="stylesheet" href="../shared/common.css?v=4">
+<link rel="stylesheet" href="../shared/sidebar.css?v=4">
 <link rel="stylesheet" href="style.css">
-<script>window.SITE_ROOT = "./";</script>
+<script>window.SITE_ROOT = "../";</script>
 </head>
-<body data-game="tictactoe">
+<body data-game="rps">
   <aside id="sidebar" class="sidebar"></aside>
   <div class="content">
   <main class="game">
-    <h1>Tic-Tac-Toe</h1>
+    <h1>Rock Paper Scissors</h1>
 
     <div id="tabs" class="tabs">
       <button class="tab-btn" data-tab="play">Play</button>
@@ -25,52 +25,41 @@
     </div>
 
     <div id="playView">
-      <div id="modeChoice" class="difficulty">
-        <button class="mode-btn" data-mode="ai">vs AI</button>
-        <button class="mode-btn" data-mode="twoPlayer">2 Player</button>
-      </div>
-
       <div id="matchTypeChoice" class="difficulty">
         <button class="matchtype-btn" data-matchtype="casual">Casual</button>
         <button class="matchtype-btn" data-matchtype="ranked">Ranked</button>
       </div>
 
-      <div id="symbolChoice" class="difficulty">
-        <button class="symbol-btn" data-symbol="X">Play as X</button>
-        <button class="symbol-btn" data-symbol="O">Play as O</button>
-        <button class="symbol-btn" data-symbol="random">Random</button>
-      </div>
-
-      <div id="difficulty" class="difficulty">
-        <button class="diff-btn" data-difficulty="easy">Easy</button>
-        <button class="diff-btn" data-difficulty="medium">Medium</button>
-        <button class="diff-btn" data-difficulty="hard">Hard</button>
-        <button class="diff-btn" data-difficulty="impossible">Impossible</button>
-      </div>
-
       <p id="rankDisplay" class="rank">Silver · 1000</p>
-      <p id="youAre" class="you-are">You are X</p>
-      <p id="status" class="status">Your turn</p>
+      <p id="status" class="status">Choose your move</p>
 
-      <div id="board" class="board">
-        <button class="cell" data-index="0"></button>
-        <button class="cell" data-index="1"></button>
-        <button class="cell" data-index="2"></button>
-        <button class="cell" data-index="3"></button>
-        <button class="cell" data-index="4"></button>
-        <button class="cell" data-index="5"></button>
-        <button class="cell" data-index="6"></button>
-        <button class="cell" data-index="7"></button>
-        <button class="cell" data-index="8"></button>
+      <div id="choices" class="choices">
+        <button class="choice-btn" data-choice="rock">Rock</button>
+        <button class="choice-btn" data-choice="paper">Paper</button>
+        <button class="choice-btn" data-choice="scissors">Scissors</button>
       </div>
+
+      <div id="reveal" class="reveal hidden">
+        <div class="reveal-side">
+          <span class="reveal-label">You</span>
+          <span class="reveal-choice" id="playerChoice"></span>
+        </div>
+        <span class="reveal-vs">VS</span>
+        <div class="reveal-side">
+          <span class="reveal-label">AI</span>
+          <span class="reveal-choice" id="aiChoice"></span>
+        </div>
+      </div>
+
+      <p id="result" class="result hidden"></p>
 
       <div class="controls">
         <div class="score" id="scoreRow">
-          <span><span id="scoreLabel1">Wins</span>: <span id="score1">0</span></span>
+          <span>Wins: <span id="score1">0</span></span>
           <span>Draws: <span id="scoreDraws">0</span></span>
-          <span><span id="scoreLabel2">Losses</span>: <span id="score2">0</span></span>
+          <span>Losses: <span id="score2">0</span></span>
         </div>
-        <button id="reset" class="reset-btn">Restart Round</button>
+        <button id="playAgain" class="reset-btn hidden">Play Again</button>
       </div>
     </div>
 
@@ -101,7 +90,7 @@
           <span class="stat-value" id="statLast10">0%</span>
         </div>
       </div>
-      <p class="stats-note">Stats track ranked games played against the AI only.</p>
+      <p class="stats-note">Stats track ranked games only.</p>
     </div>
 
     <div id="historyView" class="hidden">
@@ -109,7 +98,7 @@
       <div id="historyDetail" class="history-detail hidden">
         <button id="backToHistory" class="reset-btn">&larr; Back to list</button>
         <div id="historyDetailContent" class="history-detail-content"></div>
-        <div id="historyBoard" class="board mini-board"></div>
+        <div id="historyReveal" class="reveal"></div>
       </div>
     </div>
 
@@ -120,7 +109,7 @@
       </div>
       <div id="rankChart" class="rank-chart"></div>
       <div id="tierLadder" class="tier-ladder"></div>
-      <p class="stats-note">Tracks your rank point history in ranked vs AI games.</p>
+      <p class="stats-note">Tracks your rank point history in ranked games.</p>
     </div>
 
     <div id="themesView" class="hidden">
@@ -146,8 +135,8 @@
   </main>
   </div>
 
-  <script src="shared/theme.js?v=4"></script>
-  <script src="shared/sidebar.js?v=4"></script>
+  <script src="../shared/theme.js?v=4"></script>
+  <script src="../shared/sidebar.js?v=4"></script>
   <script src="script.js"></script>
 </body>
 </html>
